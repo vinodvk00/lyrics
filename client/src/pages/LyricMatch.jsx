@@ -50,7 +50,7 @@ const LyricMatch = () => {
     setUserGuess("");
 
     try {
-      const response = await fetch(`${API_URL}/api/generate-lyric`, {
+      const response = await fetch(`/api/generate-lyric`, {
         credentials: 'include' // Important for session cookies
       });
       const data = await response.json();
@@ -74,7 +74,7 @@ const LyricMatch = () => {
     setCheckingAnswer(true);
     
     try {
-      const response = await fetch(`${API_URL}/api/check-guess`, {
+      const response = await fetch(`/api/check-guess`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
