@@ -19,9 +19,13 @@ export const generateLyric = async (req, res) => {
         //     lyricSnippet,
         // });
 
+        console.log("Before setting session:", req.session);
+
         req.session.currentSong = randomSong;
         req.session.save((err) => {
             if (err) console.error("Session save error:", err);
+
+            console.log("After setting session:", req.session);
             res.json({
                 success: true,
                 lyricSnippet,
