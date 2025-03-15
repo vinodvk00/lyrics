@@ -19,7 +19,7 @@ const LyricMatch = () => {
   });
 
   // API endpoint 
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+  const API_URL = import.meta.env.VITE_API_URL || '';
 
   // Save high score to localStorage when it changes
   useEffect(() => {
