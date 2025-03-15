@@ -28,7 +28,7 @@ const LyricMatch = () => {
 
   // Generate static background circles once on component mount
   const [backgroundCircles, setBackgroundCircles] = useState([]);
-  
+
   useEffect(() => {
     // Generate static background circles only once
     const newCircles = [...Array(8)].map((_, i) => ({
@@ -40,10 +40,14 @@ const LyricMatch = () => {
       backgroundColor: [`#8B5CF6`, `#3B82F6`, `#EC4899`, `#8B5CF6`, `#6366F1`][i % 5],
       animationDuration: `${Math.random() * 20 + 30}s`,
     }));
-    
+
     setBackgroundCircles(newCircles);
   }, []);
 
+  // Add a state variable for songToken 
+  const [songToken, setSongToken] = useState("");
+
+  // In the generateLyricSnippet function, save the token
   const generateLyricSnippet = async () => {
     setLoading(true);
     setResult(null);
@@ -51,12 +55,13 @@ const LyricMatch = () => {
 
     try {
       const response = await fetch(`/api/generate-lyric`, {
-        credentials: 'include' // Important for session cookies
+        credentials: 'include' // Important for session cookies, prev i was missing sometimes
       });
       const data = await response.json();
 
       if (data.success) {
         setLyricSnippet(data.lyricSnippet);
+        setSongToken(data.songToken); // Save the song token
       } else {
         throw new Error(data.message || "Failed to fetch lyric snippet");
       }
@@ -68,11 +73,12 @@ const LyricMatch = () => {
     }
   };
 
+  // Then in the checkAnswer function, include songToken in the request
   const checkAnswer = async () => {
     if (!userGuess || !lyricSnippet || checkingAnswer) return;
 
     setCheckingAnswer(true);
-    
+
     try {
       const response = await fetch(`/api/check-guess`, {
         method: 'POST',
@@ -80,7 +86,8 @@ const LyricMatch = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userGuess
+          userGuess,
+          songToken // Include the songToken
         }),
         credentials: 'include' // Important for session cookies
       });
@@ -153,7 +160,7 @@ const LyricMatch = () => {
     <div className="flex items-center justify-center min-h-screen bg-gray-900 p-4 overflow-hidden">
       {/* Fixed background that extends beyond the viewport */}
       <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-purple-950 to-gray-900" />
-      
+
       {/* Fixed background circles with stable animation */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <style jsx>{`
@@ -166,7 +173,7 @@ const LyricMatch = () => {
           @keyframes float-6 { 0%, 100% { transform: translate(-50%, -50%); } 50% { transform: translate(-47%, -53%); } }
           @keyframes float-7 { 0%, 100% { transform: translate(-50%, -50%); } 50% { transform: translate(-53%, -47%); } }
         `}</style>
-        
+
         {backgroundCircles.map((circle) => (
           <div
             key={circle.id}
