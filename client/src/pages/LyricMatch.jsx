@@ -17,6 +17,7 @@ const LyricMatch = () => {
     const saved = localStorage.getItem('lyricMatchHighScore');
     return saved ? parseInt(saved, 10) : 0;
   });
+  const [answerRevealed, setAnswerRevealed] = useState(false);
 
   // API endpoint 
   const API_URL = import.meta.env.VITE_API_URL || '';
@@ -52,6 +53,8 @@ const LyricMatch = () => {
     setLoading(true);
     setResult(null);
     setUserGuess("");
+    // Reset the answerRevealed state when generating a new lyric
+    setAnswerRevealed(false);
 
     try {
       const response = await fetch(`/api/generate-lyric`, {
@@ -73,9 +76,9 @@ const LyricMatch = () => {
     }
   };
 
-  // Then in the checkAnswer function, include songToken in the request
   const checkAnswer = async () => {
-    if (!userGuess || !lyricSnippet || checkingAnswer) return;
+    // Prevent checking answer if input is disabled or already checking
+    if (!userGuess || !lyricSnippet || checkingAnswer || answerRevealed) return;
 
     setCheckingAnswer(true);
 
@@ -111,6 +114,8 @@ const LyricMatch = () => {
           }
         } else {
           setStreak(0);
+          // Set answerRevealed to true when the answer is incorrect and revealed
+          setAnswerRevealed(true);
         }
 
         setResult({
@@ -134,7 +139,7 @@ const LyricMatch = () => {
 
   // Handle enter key press
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && userGuess && !checkingAnswer) {
+    if (e.key === 'Enter' && userGuess && !checkingAnswer && !answerRevealed) {
       checkAnswer();
     }
   };
@@ -300,15 +305,15 @@ const LyricMatch = () => {
                       onChange={(e) => setUserGuess(e.target.value)}
                       onKeyPress={handleKeyPress}
                       placeholder="Enter song title"
-                      className="mt-2 bg-gray-800 border-gray-700 text-white focus:ring-purple-500 focus:border-purple-500 py-6 text-lg"
-                      disabled={checkingAnswer}
+                      className={`mt-2 bg-gray-800 border-gray-700 text-white focus:ring-purple-500 focus:border-purple-500 py-6 text-lg ${answerRevealed ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      disabled={checkingAnswer || answerRevealed}
                     />
                   </div>
 
                   <Button
                     onClick={checkAnswer}
-                    disabled={!userGuess || !lyricSnippet || checkingAnswer}
-                    className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 transition-all border-0 py-6 text-lg"
+                    disabled={!userGuess || !lyricSnippet || checkingAnswer || answerRevealed}
+                    className={`w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 transition-all border-0 py-6 text-lg ${answerRevealed ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     {checkingAnswer ? (
                       <>
@@ -338,6 +343,11 @@ const LyricMatch = () => {
                   {result.message}
                   {result.correct && (
                     <div className="mt-2 text-lg text-green-300 font-bold">+{result.pointsEarned} points!</div>
+                  )}
+                  {!result.correct && (
+                    <div className="mt-2 text-lg text-amber-300 font-bold">
+                      Generate a new lyric snippet to continue playing!
+                    </div>
                   )}
                 </AlertDescription>
               </Alert>
