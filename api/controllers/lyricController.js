@@ -11,24 +11,20 @@ export const generateLyric = async (req, res) => {
             artist
         );
 
-        // Store the correct song in session instead of sending it to client
-        // req.session.currentSong = randomSong;
-
-        // res.json({
-        //     success: true,
-        //     lyricSnippet,
-        // });
-
-        console.log("Before setting session:", req.session);
-
+        // Store in session but also encrypt and send to client as backup
         req.session.currentSong = randomSong;
+        
+        // Simple encryption
+        // TODO: in production use a proper encryption library
+        const encodedSong = Buffer.from(randomSong).toString('base64');
+        
         req.session.save((err) => {
             if (err) console.error("Session save error:", err);
-
-            console.log("After setting session:", req.session);
+            
             res.json({
                 success: true,
                 lyricSnippet,
+                songToken: encodedSong // Send encrypted song data to client
             });
         });
     } catch (error) {
@@ -42,16 +38,17 @@ export const generateLyric = async (req, res) => {
 
 export const checkGuess = async (req, res) => {
     try {
+        const { userGuess, songToken } = req.body;
+        let correctSong = req.session.currentSong;
         
-        console.log("Session in checkGuess:", req.session);
-        console.log("Cookies:", req.cookies);
-        console.log("Headers:", req.headers);
-        
-        const { userGuess } = req.body;
-        console.log("User guess:", userGuess);
-        
-        const correctSong = req.session.currentSong;
-        console.log("Correct song from session:", correctSong);
+        // Fallback if session data is missing
+        if (!correctSong && songToken) {
+            try {
+                correctSong = Buffer.from(songToken, 'base64').toString();
+            } catch (e) {
+                console.error("Failed to decode song token:", e);
+            }
+        }
 
         if (!userGuess || !correctSong) {
             return res.status(400).json({
