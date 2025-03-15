@@ -42,8 +42,16 @@ export const generateLyric = async (req, res) => {
 
 export const checkGuess = async (req, res) => {
     try {
+        
+        console.log("Session in checkGuess:", req.session);
+        console.log("Cookies:", req.cookies);
+        console.log("Headers:", req.headers);
+        
         const { userGuess } = req.body;
+        console.log("User guess:", userGuess);
+        
         const correctSong = req.session.currentSong;
+        console.log("Correct song from session:", correctSong);
 
         if (!userGuess || !correctSong) {
             return res.status(400).json({

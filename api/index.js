@@ -15,10 +15,13 @@ const PORT = process.env.PORT || 3000;
 const app = express();
 
 app.use(express.json());
+
 app.use(
     cors({
         origin: process.env.CORS_ORIGIN || "http://localhost:5173",
         credentials: true,
+        methods: ["GET", "POST"],
+        allowedHeaders: ["Content-Type"]
     })
 );
 
@@ -27,17 +30,16 @@ const MemoryStoreSession = MemoryStore(session);
 app.use(
     session({
         cookie: {
-            secure: process.env.NODE_ENV === "production",
+            secure: process.env.NODE_ENV === "production" || process.env.RENDER === "true",
             maxAge: 60 * 60 * 1000, // 1 hour
-            sameSite: 'none'
+            sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax'
         },
         store: new MemoryStoreSession({
             checkPeriod: 86400000, // prune expired entries every 24h
         }),
         secret: process.env.SESSION_SECRET || "lyric-match-secret",
         resave: false,
-        saveUninitialized: false,
-        
+        saveUninitialized: true, // Change this to true for your use case
     })
 );
 
