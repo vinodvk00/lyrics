@@ -1,12 +1,11 @@
 import './App.css'
-import { Button } from './components/ui/button'
-import LyricMatch from './pages/LyricMatch'
+import './globalScrollbar.css'
+import Home from './pages/Home'
 
 function App() {
-
   return (
     <>
-      <LyricMatch />
+      <Home />
     </>
   )
 }
